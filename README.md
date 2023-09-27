@@ -15,7 +15,7 @@ pip3 install -r requirements.txt
 
 # Data
 Download the SemanticKITTI dataset with labels from [here](http://semantic-kitti.org/dataset.html#download/).  
-Add the semantic-kitti.yaml file to the folder.
+Add the [semantic-kitti.yaml](https://github.com/PRBonn/semantic-kitti-api/blob/master/config/semantic-kitti.yaml) file to the folder.
 
 Folder structure:
 ```
@@ -37,4 +37,4 @@ SemanticKitti/
 # Tracking
 
 # Acknowledgments
-The code is based on [4D-StOP](https://github.com/LarsKreuzberg/4D-StOP) and [AB3DMOT](https://github.com/xinshuoweng/AB3DMOT)
+The code is based on [4D-StOP](https://github.com/LarsKreuzberg/4D-StOP), [semantic-kitti-api](https://github.com/PRBonn/semantic-kitti-api) and [AB3DMOT](https://github.com/xinshuoweng/AB3DMOT)
