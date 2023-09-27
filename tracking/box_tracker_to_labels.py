@@ -1,3 +1,4 @@
+import argparse
 from collections import defaultdict
 import numpy as np
 from tracking.tracking_io import parse_boxes
@@ -18,7 +19,23 @@ class IDmapClass:
     trk_id: list()    # id  in the tracking results
     label_id: list()  # id  in the final results
 
-def getpaths(dataset_path, tracking_path,sc_path, sequence):
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='AB3DMOT')
+    parser.add_argument('--dataset', type=str,
+                        default='/media/nirit/mugiwara/datasets/SemanticKitti', help='dataset path')
+    parser.add_argument('--data_cfg', type=str,
+                        default='/media/nirit/mugiwara/datasets/SemanticKitti/semantic-kitti.yaml',
+                        help='path to config file ')
+    parser.add_argument('--predictions', type=str,
+                        default='./predictions_data',
+                        help='path to prediction ')
+    parser.add_argument('--sequences', type=int, default=8, help='sequence number ')
+    parser.add_argument('--split', type=str, default='valid', help='valid or not ')
+    args = parser.parse_args()
+    return args
+
+def getpaths(dataset_path, tracking_path, sequence):
     scan_paths = os.path.join(dataset_path, "sequences",
                               sequence, "velodyne")
     if os.path.isdir(scan_paths):
@@ -52,29 +69,7 @@ def getpaths(dataset_path, tracking_path,sc_path, sequence):
 
     assert (len(scan_names)==len(track_names))
 
-    ########################################################
-
-    if os.path.isdir(sc_path):
-        print("Labels folder exists! Using labels from %s" % sc_path)
-    else:
-        print("Labels folder doesn't exist! Exiting... ", sc_path)
-        quit()
-
-    pred_voxel_names = []
-    for root, dirs, files in os.walk(os.path.expanduser(sc_path)):
-        for file in files:
-            if file.lower().endswith('voxels.npy'):
-                pred_voxel_names.append(os.path.join(root, file))
-    pred_voxel_names.sort()
-
-    pred_voxel_sem_names = []
-    for root, dirs, files in os.walk(os.path.expanduser(sc_path)):
-        for file in files:
-            if file.lower().endswith('sem_label.npy'):
-                pred_voxel_sem_names.append(os.path.join(root, file))
-    pred_voxel_sem_names.sort()
-
-    return scan_names, track_names, pred_voxel_names,pred_voxel_sem_names
+    return scan_names, track_names
 
 def find_majority(k):
     myMap = {}
@@ -698,12 +693,8 @@ def getIndToPointsInsideBoxes_(array_of_boxes, points, label_sem_class, label_in
 
     return results
 
-def init(sequence,split):
+def init(sequence,split,path_to_gt,seg_prediction_dir,box_tracker_path):
     # 1. get file names & path
-    path_to_gt = '/media/nirit/mugiwara/datasets/SemanticKitti'
-    #seg_prediction_dir = '/media/nirit/mugiwara/code/4D-StOP/media/nirit/mugiwara/code/4D-StOP/test/Log_2022-06-13_17-33-24_importance_None_str1_bigpug_2_current_chkp'
-    # new:
-    seg_prediction_dir='/media/nirit/mugiwara/code/4D-StOP/4D-StOP-main/nirit_test_net/Log_2022-06-13_17-33-24_importance_None_str1_bigpug_2_current_chkp'
     if split == 'valid':
         prediction_path = '{}/val_probs'.format(seg_prediction_dir)
     else:
@@ -712,12 +703,12 @@ def init(sequence,split):
 
     #path_to_track_result = '/media/nirit/mugiwara/code/4D-StOP/media/nirit/mugiwara/code/4D-StOP/test/Log_2022-06-13_17-33-24_importance_None_str1_bigpug_2_current_chkp/AB3DMOT_tracker/predictions/trk_withid_0/sequences08'
     # new path
-    base_path = '/media/nirit/mugiwara/code/4D-StOP/4D-StOP-main/nirit_test_net/Log_2022-06-13_17-33-24_importance_None_str1_bigpug_2_current_chkp/AB3DMOT_tracker'
-    path_to_track_result = os.path.join(base_path,"predictions","trk_withid_0","sequences{0:02d}".format(sequence))
-    save_path = os.path.join(base_path,'to_labels')
-    pth_js3c_output = '/media/nirit/mugiwara/code/JS3C-Net/JS3C-Net-main/nirit_upsample_cloud/raw_results'
 
-    sc_path = os.path.join(pth_js3c_output, "sequences", '{0:02d}'.format(sequence))
+    path_to_track_result = os.path.join(box_tracker_path,"predictions","trk_withid_0","sequences{0:02d}".format(sequence))
+    save_path = os.path.join(box_tracker_path,'to_labels')
+    #pth_js3c_output = '/media/nirit/mugiwara/code/JS3C-Net/JS3C-Net-main/nirit_upsample_cloud/raw_results'
+
+    #sc_path = os.path.join(pth_js3c_output, "sequences", '{0:02d}'.format(sequence))
 
     if not os.path.exists(save_path):
         os.mkdir(save_path)
@@ -731,21 +722,24 @@ def init(sequence,split):
     if not os.path.exists(next_path):
         os.mkdir(next_path)
 
-    scan_names, track_names, pred_voxel_names, pred_voxel_sem_names = getpaths(path_to_gt, path_to_track_result,sc_path, sequence='{0:02d}'.format(int(sequence)))
+    scan_names, track_names  = getpaths(path_to_gt, path_to_track_result, sequence='{0:02d}'.format(int(sequence)))
 
 
     # config data
     data_cfg =os.path.join(path_to_gt,"semantic-kitti.yaml")
     cfg= yaml.safe_load(open(data_cfg, 'r'))
 
-    return save_path, scan_names, prediction_path, track_names, pred_voxel_names, pred_voxel_sem_names , cfg
+    return save_path, scan_names, prediction_path, track_names, cfg
 
 
-def main():
+def main(args):
+    args = parse_args()
 
-    sequence = 8
-    split = 'valid'
-    save_path, scan_names, prediction_path, track_names, pred_voxel_names, pred_voxel_sem_names, config_data = init(sequence, split)
+    save_path, scan_names, prediction_path, track_names, config_data = init(args.sequences,
+                                                                            args.split,
+                                                                            args.dataset,
+                                                                            args.predictions,
+                                                                            os.path.join(args.predictions,'NextStop_tracker'))
 
     classStr2Int_global = {value: key for key, value in config_data['labels'].items()} # global labels
     classInt2Str_global = config_data['labels'] # global labels
@@ -831,19 +825,15 @@ def main():
         frame_points = np.fromfile(point_file, dtype=np.float32)
         points = frame_points.reshape((-1, 4))
         # 1.2 segm
-        sem_path = os.path.join(prediction_path, '{0:02d}_{1:07d}.npy'.format(sequence, idx))
+        sem_path = os.path.join(prediction_path, '{0:02d}_{1:07d}.npy'.format(args.sequences, idx))
         label_sem_class = np.load(sem_path) # in 4d-Stop numbering
         # 1.3 instance
-        ins_path = os.path.join(prediction_path, '{0:02d}_{1:07d}_i.npy'.format(sequence, idx))
+        ins_path = os.path.join(prediction_path, '{0:02d}_{1:07d}_i.npy'.format(args.sequences, idx))
         label_inst = np.load(ins_path)
         # 1.4 tracking results
         track_file = track_names[idx]
         array_of_boxes, array_of_TrackedID, array_of_ClassID,array_of_DetectionScore = parse_boxes(filename=track_file)
         # np.array((float(h), float(w), float(l), float(x), float(y), float(z),float(theta)))
-        # 1.5 scene completion
-        sc_pred_voxel_coords = np.load(pred_voxel_names[idx])
-        sc_seg_label = np.load(pred_voxel_sem_names[idx])
-
 
         # 2. init results
         new_sem_label  = np.ones (len(points),dtype=np.int32) * -1
@@ -952,8 +942,6 @@ def main():
                         else:
                             new_inst_label[ind] = 0
                             new_sem_label[ind] = 0
-
-
                 else:
                     new_inst_label[valid_ind] = 0
                     new_sem_label[valid_ind] = 0
@@ -972,7 +960,7 @@ def main():
         new_preds = np.bitwise_or(new_preds, new_sem_label)
 
 
-        filename = '{}/{}/{:02d}/predictions/{:06d}.label'.format(save_path, 'sequences', sequence, idx)
+        filename = '{}/{}/{:02d}/predictions/{:06d}.label'.format(save_path, 'sequences', args.sequences, idx)
         new_preds.tofile(filename)
 
         print("\r", end='')
@@ -1001,4 +989,5 @@ def main():
                 the_file.write(txt + '\n')
 
 if __name__ == '__main__':
-    main()
+    args = parse_args()
+    main(args)

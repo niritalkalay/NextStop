@@ -12,7 +12,7 @@ np.set_printoptions(suppress=True, precision=3)
 
 # A Baseline of 3D Multi-Object Tracking
 class AB3DMOT(object):			  	
-	def __init__(self, cfg, cat, calib=None, oxts=None, log=None, ID_init=0):
+	def __init__(self, cfg, cat,debug_path, calib=None, oxts=None, log=None, ID_init=0):
 
 		# vis and log purposes
 		self.vis = cfg.vis # todo
@@ -37,7 +37,7 @@ class AB3DMOT(object):
 		# debug
 		#self.debug_id = 29
 		self.debug_id = None
-		self.debug_path = '/media/nirit/mugiwara/code/4D-StOP/media/nirit/mugiwara/code/4D-StOP/test/Log_2022-06-13_17-33-24_importance_None_str1_bigpug_2_current_chkp/AB3DMOT_tracker'
+		self.debug_path = debug_path
 		self.debug_kalman_path = None
 		self.debug_kalman_predict_file = None
 		self.debug_kalman_update_file = None

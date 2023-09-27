@@ -164,33 +164,11 @@ def parse_args():
     parser.add_argument('--data_cfg', type=str,
                         default='/media/nirit/mugiwara/datasets/SemanticKitti/semantic-kitti.yaml',
                         help='path to config file ')
-
-    # prediction from 4DSTOP old path
-    #parser.add_argument('--predictions', type=str,
-    #                    default='/media/nirit/mugiwara/code/4D-StOP/media/nirit/mugiwara/code/4D-StOP/test/Log_2022-06-13_17-33-24_importance_None_str1_bigpug_2_current_chkp',
-    #                    help='path to prediction ')
-
     parser.add_argument('--predictions', type=str,
-                       default='/media/nirit/mugiwara/code/4D-StOP/4D-StOP-main/nirit_test_net/Log_2022-06-13_17-33-24_importance_None_str1_bigpug_2_current_chkp',
+                        default='./predictions_data',
                         help='path to prediction ')
-
-    ##prediction from Panoptic-PolarNet
-    # parser.add_argument('--predictions', type=str,
-    #                    default='/media/nirit/mugiwara/code/Panoptic-PolarNet-main/out/SemKITTI',
-    #                    help='path to prediction ')
-
-    # parser.add_argument('--predictions', type=str,
-    #                    default='/media/nirit/mugiwara/code/SphereFormer-master2/runs/semantic_kitti_unet32_spherical_transformer/validation/',
-    #                    help='path to prediction ')
-    parser.add_argument('--sc', type=str,
-                        # default='/media/nirit/mugiwara/code/JS3C-Net/JS3C-Net-main/log/JS3C-Net-kitti/dump/completion/submit_valid2023_02_21',
-                        default='/media/nirit/mugiwara/code/JS3C-Net/JS3C-Net-main/nirit_upsample_cloud/raw_results',
-                        help='path to scene completion ')
     parser.add_argument('--sequences', type=int, default=8, help='sequence number ')
     parser.add_argument('--split', type=str, default='valid', help='valid or not ')
-    parser.add_argument('--upsample_data', type=str,
-                        default='/media/nirit/mugiwara/code/JS3C-Net/JS3C-Net-main/nirit_upsample_cloud/non_naive1',
-                        help='path to prediction ')
     args = parser.parse_args()
     return args
 
@@ -202,8 +180,6 @@ def roty(t):
     return np.array([[c, 0, s],
                      [0, 1, 0],
                      [-s, 0, c]])
-
-
 def simplePCA(arr):
     '''
     # taken from https://github.com/fvilmos/simplePCA/blob/master/simplePCA.py
@@ -1218,7 +1194,6 @@ def remove_detections(dets_frame, idx):
 def main(args):
     # parameters from args
     prediction_dir = args.predictions
-    pth_js3c_output = args.sc
     split = args.split
     dataset = args.dataset
 
@@ -1226,8 +1201,8 @@ def main(args):
         prediction_path = '{}/val_probs'.format(prediction_dir)
     else:
         prediction_path = '{}/probs'.format(prediction_dir)
-    print("4D STOP PATH : ",prediction_path)
-    base_save_path = '{}/AB3DMOT_tracker'.format(prediction_dir)
+    print("input is taken from : ", prediction_path)
+    base_save_path = '{}/NextStop_tracker'.format(prediction_dir)
     if not os.path.exists(base_save_path):
         os.makedirs(base_save_path)
 
@@ -1339,7 +1314,8 @@ def main(args):
                                       # Calibration(os.path.join(dataset, "sequences", '{0:02d}'.format(sequence), "calib.txt")),
                                       oxts=np.array(poses_seq),  # FrameNumX4X4#imu_poses,
                                       log=log,  # log_file,
-                                      ID_init=1)
+                                      ID_init=1,
+                                      debug_path=base_save_path)
 
         tracker_vehicles = AB3DMOT(cfg=AB3DMOT_cgf,
                                    cat='Car',
@@ -1347,7 +1323,8 @@ def main(args):
                                    # Calibration(os.path.join(dataset, "sequences", '{0:02d}'.format(sequence), "calib.txt")),
                                    oxts=np.array(poses_seq),  # FrameNumX4X4#imu_poses,
                                    log=log,  # log_file,
-                                   ID_init=1)
+                                   ID_init=1,
+                                   debug_path = base_save_path)
 
         tracker_bikes = AB3DMOT(cfg=AB3DMOT_cgf,
                                 cat='Cyclist',
@@ -1355,7 +1332,8 @@ def main(args):
                                 # Calibration(os.path.join(dataset, "sequences", '{0:02d}'.format(sequence), "calib.txt")),
                                 oxts=np.array(poses_seq),  # FrameNumX4X4#imu_poses,
                                 log=log,  # log_file,
-                                ID_init=1)
+                                ID_init=1,
+                                debug_path = base_save_path)
 
         # loop over frames
         for idx, point_file in zip(range(len(point_names)), point_names):
