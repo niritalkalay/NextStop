@@ -288,9 +288,9 @@ class Identity(_BaseMetric):
             match_rows, match_cols = linear_sum_assignment(fn_mat + fp_mat)
 
             # Accumulate basic statistics
-            res[i]['IDFN'] = fn_mat[match_rows, match_cols].sum().astype(np.int)
-            res[i]['IDFP'] = fp_mat[match_rows, match_cols].sum().astype(np.int)
-            res[i]['IDTP'] = (gt_id_count.sum() - res[i]['IDFN']).astype(np.int)
+            res[i]['IDFN'] = fn_mat[match_rows, match_cols].sum().astype(np.int64)
+            res[i]['IDFP'] = fp_mat[match_rows, match_cols].sum().astype(np.int64)
+            res[i]['IDTP'] = (gt_id_count.sum() - res[i]['IDFN']).astype(np.int64)
 
 
             #res[i]['Dets'] = self.data[i]['num_tracker_dets']
