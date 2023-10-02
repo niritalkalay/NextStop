@@ -135,7 +135,7 @@ def panoptic_compute(msk_gt, cat_gt, track_gt, seq_trajectories, class_trajector
         tp_cat = cat_gt[tp_i]
         fn_cat = cat_gt[fn_i]
         fp_cat = cat_pred[fp_i]
-        #"""
+        """
         for ii,fp_ii in enumerate(fp_i):
             if fp_ii:
                 cat = cat_pred[ii].item()
@@ -149,9 +149,9 @@ def panoptic_compute(msk_gt, cat_gt, track_gt, seq_trajectories, class_trajector
 
                 if real_track_id!=0 and cat==1:
                     print('FP in frame ' ,frameNum ,' cat = ',cat,  ' of tracking label = ',real_track_id )
-        #"""
+        """
 
-        # """
+        """
         for ii, fn_ii in enumerate(fn_i):
             if fn_ii:
                 cat = cat_gt[ii].item()
@@ -165,7 +165,7 @@ def panoptic_compute(msk_gt, cat_gt, track_gt, seq_trajectories, class_trajector
 
                 if real_track_id != 0 and cat==1:
                     print('FN in frame ', frameNum, ' cat = ', cat, ' of GT tracking label = ', real_track_id)
-        # """
+         """
 
 
         match_ind = torch.nonzero(matches)
@@ -183,8 +183,8 @@ def panoptic_compute(msk_gt, cat_gt, track_gt, seq_trajectories, class_trajector
         if tp_cat.numel() > 0:
             iou.index_add_(0, tp_cat, _iou)
 
-    print("fp[1] = ", fp.numpy()[1])
-    print("fn[1] = ", fn.numpy()[1])
+    #print("fp[1] = ", fp.numpy()[1])
+    #print("fn[1] = ", fn.numpy()[1])
 
     return iou, tp, fp, fn, seq_trajectories, class_trajectories, iou_trajectories
 

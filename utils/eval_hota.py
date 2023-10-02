@@ -34,19 +34,19 @@ class HOTA(_BaseMetric):
         res = np.array([{} for i in range(Nclass)])
         for i in range(1,Nclass):
             for field in self.float_array_fields + self.integer_array_fields:
-                res[i][field] = np.zeros((len(self.array_labels)), dtype=np.float)
+                res[i][field] = np.zeros((len(self.array_labels)), dtype=np.float32)
             for field in self.float_fields:
                 res[i][field] = 0
 
             # Return result quickly if tracker or gt sequence is empty
             if data[i]['num_tracker_dets'] == 0:
-                res[i]['HOTA_FN'] = data[i]['num_gt_dets'] * np.ones((len(self.array_labels)), dtype=np.float)
-                res[i]['LocA'] = np.ones((len(self.array_labels)), dtype=np.float)
+                res[i]['HOTA_FN'] = data[i]['num_gt_dets'] * np.ones((len(self.array_labels)), dtype=np.float32)
+                res[i]['LocA'] = np.ones((len(self.array_labels)), dtype=np.float32)
                 res[i]['LocA(0)'] = 1.0
                 continue
             if data[i]['num_gt_dets'] == 0:
-                res[i]['HOTA_FP'] = data[i]['num_tracker_dets'] * np.ones((len(self.array_labels)), dtype=np.float)
-                res[i]['LocA'] = np.ones((len(self.array_labels)), dtype=np.float)
+                res[i]['HOTA_FP'] = data[i]['num_tracker_dets'] * np.ones((len(self.array_labels)), dtype=np.float32)
+                res[i]['LocA'] = np.ones((len(self.array_labels)), dtype=np.float32)
                 res[i]['LocA(0)'] = 1.0
                 continue
 

@@ -11,6 +11,8 @@ from sklearn.neighbors import KDTree
 from AB3DMOT_libs.dist_metrics import iou_raw
 from sklearn.cluster import AgglomerativeClustering
 import open3d as o3d # nirit for debug
+import time
+input_from_sc = False
 
 input_from_sc= False
 
@@ -113,11 +115,8 @@ def findClosest(points,ind1,ind2):
     return f_ind
 
 
-
-
-
-def getIndToPointsInsideBox_(box,points,label_sem_class,label_inst, point_grid=None, grid_sem=None, showPlots=False):
-    h,w,l,cx,cy,cz,theta = box
+def getIndToPointsInsideBox_(box, points, label_sem_class, label_inst, showPlots=False):
+    h, w, l, cx, cy, cz, theta = box
 
     x_min = cx - (l) / 2
     y_min = cy - (w) / 2
@@ -134,74 +133,10 @@ def getIndToPointsInsideBox_(box,points,label_sem_class,label_inst, point_grid=N
     idx = np.intersect1d(np.intersect1d(idx_x, idx_y), idx_z)
 
     things_idx = np.where((label_sem_class[idx] < 9) & (label_sem_class[idx] > 0))[0]
-
+    
     res = idx[things_idx]
-
-    if grid_sem is not None and len(res)!=0:
-        grid_interesting_idx = np.where(grid_sem != 0)[0]
-        if len(grid_interesting_idx) != 0:
-            # JS3C range:
-            min_extent = [0, -25.6, -2]
-            max_extent = [51.2, 25.6, 4.4]
-            # to avoid calc kd-tree if tracked object is not in range of sc:
-            if ((x_min <= min_extent[0] <= x_max) or (x_min <= max_extent[0] <= x_max) or (
-                    x_min >= min_extent[0] and x_max <= max_extent[0])) and \
-                    ((y_min <= min_extent[1] <= y_max) or (y_min <= max_extent[1] <= y_max) or (
-                            y_min >= min_extent[1] and y_max <= max_extent[1])):
-
-                obj_points  = points[res,:3]
-
-                #draw_scenes(points=obj_points, title='obj_points in the range of sc')
-                #draw_scenes(points=point_grid[grid_interesting_idx], title='point_grid[grid_interesting_idx]')
-
-                # find closest point_grid to the object
-                tree = KDTree(point_grid[grid_interesting_idx], leaf_size=2)
-                dist, ind = tree.query(obj_points, k=int(np.sqrt(len(grid_interesting_idx))))
-                f_ind = []
-                dist_all = []
-                ind_all = []
-                for ro, d in enumerate(dist):
-                    for co, dd in enumerate(d):
-                        dist_all.append(d)
-                        ind_all.append(ind[ro, co])
-                        if dd < 1.5:
-                            f_ind.append(ind[ro, co])
-                # np.min(dist_all)
-                # np.max(dist_all)
-                f_ind = np.unique(f_ind)
-
-                #draw_scenes(points=point_grid[grid_interesting_idx], title='point_grid[grid_interesting_idx]')
-
-                if len(f_ind) >= 100:#minPoints:
-
-                    obj_points_with_sc = np.vstack((obj_points, point_grid[grid_interesting_idx[f_ind]]))
-                    #draw_scenes(points=obj_points_with_sc, title='obj_points with no sc')
-
-                    new_x_min,new_y_min,new_z_min =  np.min(obj_points_with_sc,axis=0)
-                    new_x_max, new_y_max, new_z_max = np.max(obj_points_with_sc, axis=0)
-
-                    idx_x = np.intersect1d(np.where(points[:, 0] <= new_x_max)[0], np.where(points[:, 0] >= new_x_min)[0])
-                    idx_y = np.intersect1d(np.where(points[:, 1] <= new_y_max)[0], np.where(points[:, 1] >= new_y_min)[0])
-                    idx_z = np.intersect1d(np.where(points[:, 2] <= new_z_max)[0], np.where(points[:, 2] >= new_z_min)[0])
-                    idx = np.intersect1d(np.intersect1d(idx_x, idx_y), idx_z)
-
-                    show_plot  = True
-                    things_idx = np.where((label_sem_class[idx] < 9) & (label_sem_class[idx] > 0))[0]
-                    if len(np.unique(label_inst[res])) != len(np.unique(label_inst[idx[things_idx]])):
-                        draw_scenes(points=point_grid[grid_interesting_idx], title='point_grid[grid_interesting_idx]')
-                        print ("larger!")
-                        show_plot = True
-
-
-                    if show_plot:
-                        draw_scenes(points=points[res, :3], title='points no sc')
-                    res = idx[things_idx]
-                    if show_plot:
-                        draw_scenes(points=points[res,:3], title='points with sc')
-                        #print("")
-
-
-    if len(res)!=0:
+	
+    if len(res) != 0:
         # find the closest label to center box
         # (using the closest label to handle the box size mismatch)
 
@@ -459,7 +394,7 @@ def detectOverlappingPoints(points,array_of_boxes,array_of_points_of_boxes):
                 draw_scenes_raw(points=points[:, :3], ref_boxes=None,
                                 gt_boxes=[box_b],
                                 title="box_b")
-                draw_scenes_raw(points=points[overlap_ind.astype(np.int)], ref_boxes=[box_a],
+                draw_scenes_raw(points=points[overlap_ind.astype(np.int64)], ref_boxes=[box_a],
                                 gt_boxes=[box_b],
                                 title="detectOverlappingBoxes, box_a green, box_b blue, box_a,box_b =" + str(
                                     i) + "," + str(j))
@@ -491,10 +426,7 @@ def getIndToPointsInsideBoxes (array_of_boxes,points,
         #else:
         #    show_plot=False
 
-        results[b] = getIndToPointsInsideBox_(box, points,
-                                              label_sem_class, label_inst,
-                                              sc_pred_voxel_coords,sc_seg_label,
-                                              show_plot)
+        results[b] = getIndToPointsInsideBox_(box, points, label_sem_class, label_inst, show_plot)
 
     overlapping_boxes, non_overlapping_boxes = detectOverlappingPoints(points, array_of_boxes,
                                                                        results)  # there is overlap if points overlap
@@ -693,7 +625,9 @@ def getIndToPointsInsideBoxes_(array_of_boxes, points, label_sem_class, label_in
 
     return results
 
-def init(sequence,split,path_to_gt,seg_prediction_dir,box_tracker_path):
+
+def init(sequence, split, path_to_gt, seg_prediction_dir,box_tracker_path):
+
     # 1. get file names & path
     if split == 'valid':
         prediction_path = '{}/val_probs'.format(seg_prediction_dir)
@@ -912,45 +846,42 @@ def main(args):
                 valid_ind = np.argwhere((new_sem_label == sem_id) & (new_inst_label == -1))[:, 0]
                 new_inst_label[valid_ind] = sem_id
             else:
-                # things class that we do not track - give them some ID.
-                valid_ind = np.argwhere((new_sem_label == sem_id) & (new_inst_label == -1))[:, 0]
-                new_inst_label[valid_ind] = 0
-                #new_sem_label[valid_ind] = 0
+                # thing class that we do not track - give them some ID.
+                if sem_id_local_map != 0:
+                    valid_ind = np.argwhere((new_sem_label == sem_id) & (new_inst_label == -1))[:, 0]
 
-                if len(valid_ind) > 2:
-                    hierarchical_cluster = AgglomerativeClustering(n_clusters=None,
-                                                                   distance_threshold=1.5,
-                                                                   metric='euclidean',
-                                                                   linkage='complete')
-                    labels = hierarchical_cluster.fit_predict(points[valid_ind, :3])
-
-                    # draw_scenes_raw(points[valid_ind], title="just painted")
-                    for l in np.unique(labels):
-                        if l == -1:
-                            continue
-
-                        ind = valid_ind[np.where(labels == l)]
-
-                                # if sem_id_local_map==1: # trunks
-                                #    draw_scenes(points[valid_ind], title=" all points  =" + str(l))
-                                #    draw_scenes(points[ind],title = " instance =" +str(l))
-
-                        if len(ind) >= 25:
-                            # draw_scenes_raw(points[ind], title="just painted")
-                            new_inst_label[ind] = sem_id
-                            new_id += 1
-                        else:
-                            new_inst_label[ind] = 0
-                            new_sem_label[ind] = 0
-                else:
                     new_inst_label[valid_ind] = 0
                     new_sem_label[valid_ind] = 0
 
 
-        assert(len(np.where(new_inst_label == -1)[0]) == 0)
+                    #if len(valid_ind) != 0:
+                    if len(valid_ind) > 2:
+
+                        #hierarchical_cluster = AgglomerativeClustering(n_clusters=None,
+                        #                                               distance_threshold=1.5,
+                        #                                               affinity='euclidean',
+                        #                                               linkage='complete')
+                        #labels = hierarchical_cluster.fit_predict(points[valid_ind, :3])
+
+                        labels = np.unique(label_inst[valid_ind])
+                        for l in np.unique(labels):
+                            if l == -1 or l==0:
+                                continue
+                            ind = valid_ind[np.where(labels == l)]
+                            if len(ind) >= 25:
+                                # draw_scenes_raw(points[ind], title="just painted")
+                                #print("sem_id=",sem_id, "  np.mean(new_sem_label[ind]=",np.mean(new_sem_label[ind]),"  np.median(new_sem_label[ind]=",np.median(new_sem_label[ind]))
+                                new_inst_label[ind] = sem_id
+                                new_sem_label[ind] = sem_id
+
+
+        assert (len(np.where(new_inst_label == -1)[0]) == 0)
         assert (len(np.where(new_sem_label == -1)[0]) == 0)
 
         # save results
+        minus_idx = np.where(new_inst_label == -1)
+        if len(minus_idx) != 0:
+            new_inst_label[minus_idx] = 0
 
         # write instances to label file which is binary
         new_inst_label = new_inst_label.astype(np.int32)
