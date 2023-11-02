@@ -1,0 +1,23 @@
+# ninja log v5
+1	10862	1667313153979537287	/media/nirit/mugiwara/code/4D-StOP/4D-StOP-main/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/ball_query_gpu.o	7ce19e4ef009a7d0
+2	11094	1667313154211548656	/media/nirit/mugiwara/code/4D-StOP/4D-StOP-main/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/sampling_gpu.o	4e1cb9c78f4030ef
+1	11251	1667313154371556496	/media/nirit/mugiwara/code/4D-StOP/4D-StOP-main/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/interpolate_gpu.o	3bae96a3de041940
+1	11575	1667313154691572175	/media/nirit/mugiwara/code/4D-StOP/4D-StOP-main/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/group_points_gpu.o	2fcdee034b7e3dc6
+1	12197	1667313155307602341	/media/nirit/mugiwara/code/4D-StOP/4D-StOP-main/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/interpolate.o	4fcd6dd0435ef5bf
+0	12233	1667313155335603710	/media/nirit/mugiwara/code/4D-StOP/4D-StOP-main/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/ball_query.o	e550540df464e211
+1	12331	1667313155443608997	/media/nirit/mugiwara/code/4D-StOP/4D-StOP-main/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/bindings.o	f2d9954280a15fe3
+1	12661	1667313155775625243	/media/nirit/mugiwara/code/4D-StOP/4D-StOP-main/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/group_points.o	25f5dd42d9244e1b
+2	13982	1667313157095689771	/media/nirit/mugiwara/code/4D-StOP/4D-StOP-main/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/sampling.o	4bc57da3d3f1c85d
+4	10000	1698911870060153261	/media/nirit/mugiwara/code/NextStop/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/interpolate_gpu.o	b114b37fc8333eb7
+1	10000	1698911870060153261	/media/nirit/mugiwara/code/NextStop/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/ball_query_gpu.o	187ae8974acc6026
+3	10001	1698911870064153359	/media/nirit/mugiwara/code/NextStop/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/group_points_gpu.o	56cdb0f6d3e11389
+5	10552	1698911870616167010	/media/nirit/mugiwara/code/NextStop/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/sampling_gpu.o	26f5abb7dcf5a3d1
+2	11951	1698911872008201414	/media/nirit/mugiwara/code/NextStop/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/group_points.o	7efed0b7f8dc38ab
+1	11966	1698911872008201414	/media/nirit/mugiwara/code/NextStop/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/sampling.o	cd2b96737010699b
+4	12617	1698911872672217813	/media/nirit/mugiwara/code/NextStop/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/interpolate.o	9def2f2a3f6b274b
+2	13031	1698911873088228088	/media/nirit/mugiwara/code/NextStop/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/bindings.o	35a812b4808b5c13
+1	13952	1698911874012250896	/media/nirit/mugiwara/code/NextStop/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/ball_query.o	daffed551a49a11d
+8	8843	1698913164766338212	/media/nirit/mugiwara/code/NextStop/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/ball_query.o	daffed551a49a11d
+8	8886	1698913164810339012	/media/nirit/mugiwara/code/NextStop/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/sampling.o	cd2b96737010699b
+8	8894	1698913164818339158	/media/nirit/mugiwara/code/NextStop/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/group_points.o	7efed0b7f8dc38ab
+8	8909	1698913164834339450	/media/nirit/mugiwara/code/NextStop/pointnet2/build/temp.linux-x86_64-cpython-37/_ext_src/src/interpolate.o	9def2f2a3f6b274b
