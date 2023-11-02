@@ -12,7 +12,6 @@ from AB3DMOT_libs.dist_metrics import iou_raw
 from sklearn.cluster import AgglomerativeClustering
 import open3d as o3d # nirit for debug
 import time
-input_from_sc = False
 
 input_from_sc= False
 

@@ -1205,6 +1205,9 @@ def main(args):
     base_save_path = '{}/NextStop_tracker'.format(prediction_dir)
     if not os.path.exists(base_save_path):
         os.makedirs(base_save_path)
+    full_save_path = (os.path.join(base_save_path, 'sequences'))
+    if not os.path.exists(full_save_path):
+        os.makedirs(full_save_path)
 
     config_data = yaml.safe_load(open(args.data_cfg, 'r'))
 
@@ -1240,15 +1243,24 @@ def main(args):
             pred_voxel_sem_names = get_filesnames(parent_path=pred_voxel_path, extension='sem_label.npy')
 
         # init save path
-        full_save_path = (os.path.join(base_save_path, 'predictions'))
+        parent_save_path= (os.path.join(full_save_path, '{0:02d}'.format(sequence)))
+        if not os.path.exists(parent_save_path):
+            os.makedirs(parent_save_path)
+
+
+        full_save_path = (os.path.join(parent_save_path, 'predictions'))
         if not os.path.exists(full_save_path):
             os.makedirs(full_save_path)
 
-        vis_dir = os.path.join(full_save_path, 'vis_debug')
-        if not os.path.exists(vis_dir):
-            os.makedirs(vis_dir)
+        #vis_dir = os.path.join(full_save_path, 'vis_debug')
+        #if not os.path.exists(vis_dir):
+        #    os.makedirs(vis_dir)
 
-        detection_save_path = (os.path.join(base_save_path, 'detection'))
+        #vis_dir = os.path.join(full_save_path, 'vis_debug')
+        #if not os.path.exists(vis_dir):
+        #    os.makedirs(vis_dir)
+
+        detection_save_path = (os.path.join(parent_save_path, 'detection'))
         if not os.path.exists(detection_save_path):
             os.makedirs(detection_save_path)
 
@@ -1289,11 +1301,17 @@ def main(args):
             eval_dir_dict[index] = os.path.join(full_save_path, 'data_%d' % index);
             mkdir_if_missing(eval_dir_dict[index])
 
-        eval_file_dict, save_trk_dir, affinity_dir, affinity_vis = get_saving_dir(eval_dir_dict=eval_dir_dict,
-                                                                                  seq_name="sequences" + '{0:02d}'.format(
-                                                                                      sequence),
-                                                                                  save_dir=full_save_path,
-                                                                                  num_hypo=AB3DMOT_cgf.num_hypo)
+        #eval_file_dict, save_trk_dir, affinity_dir, affinity_vis = get_saving_dir(eval_dir_dict=eval_dir_dict,
+        #                                                                          seq_name="sequences" + '{0:02d}'.format(
+        #                                                                              sequence),
+        #                                                                          save_dir=full_save_path,
+        #                                                                          num_hypo=AB3DMOT_cgf.num_hypo)
+
+        eval_file_dict, save_trk_dir = get_saving_dir(eval_dir_dict=eval_dir_dict,
+                                                      seq_name="sequences" + '{0:02d}'.format(
+                                                          sequence),
+                                                      save_dir=full_save_path,
+                                                      num_hypo=AB3DMOT_cgf.num_hypo)
 
         time_str = get_timestring()
         log_path = os.path.join(AB3DMOT_cgf.save_root,
