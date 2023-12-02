@@ -20,7 +20,7 @@ at::Tensor group_points(at::Tensor points, at::Tensor idx) {
   CHECK_IS_FLOAT(points);
   CHECK_IS_INT(idx);
 
-  if (points.is_cuda()) {
+  if (points.type().is_cuda()) {
     CHECK_CUDA(idx);
   }
 
@@ -28,10 +28,10 @@ at::Tensor group_points(at::Tensor points, at::Tensor idx) {
       torch::zeros({points.size(0), points.size(1), idx.size(1), idx.size(2)},
                    at::device(points.device()).dtype(at::ScalarType::Float));
 
-  if (points.is_cuda()) {
+  if (points.type().is_cuda()) {
     group_points_kernel_wrapper(points.size(0), points.size(1), points.size(2),
-                                idx.size(1), idx.size(2), points.data_ptr<float>(),
-                                idx.data_ptr<int>(), output.data_ptr<float>());
+                                idx.size(1), idx.size(2), points.data<float>(),
+                                idx.data<int>(), output.data<float>());
   } else {
     AT_ASSERT(false, "CPU not supported");
   }
@@ -45,7 +45,7 @@ at::Tensor group_points_grad(at::Tensor grad_out, at::Tensor idx, const int n) {
   CHECK_IS_FLOAT(grad_out);
   CHECK_IS_INT(idx);
 
-  if (grad_out.is_cuda()) {
+  if (grad_out.type().is_cuda()) {
     CHECK_CUDA(idx);
   }
 
@@ -53,10 +53,10 @@ at::Tensor group_points_grad(at::Tensor grad_out, at::Tensor idx, const int n) {
       torch::zeros({grad_out.size(0), grad_out.size(1), n},
                    at::device(grad_out.device()).dtype(at::ScalarType::Float));
 
-  if (grad_out.is_cuda()) {
+  if (grad_out.type().is_cuda()) {
     group_points_grad_kernel_wrapper(
         grad_out.size(0), grad_out.size(1), n, idx.size(1), idx.size(2),
-        grad_out.data_ptr<float>(), idx.data_ptr<int>(), output.data_ptr<float>());
+        grad_out.data<float>(), idx.data<int>(), output.data<float>());
   } else {
     AT_ASSERT(false, "CPU not supported");
   }

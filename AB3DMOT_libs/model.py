@@ -207,8 +207,8 @@ class AB3DMOT(object):
 					metric_thres_1 = -0.2
 					metric_thres_2 = -0.5
 					score_thres    = 0.7 #detection thres for high  score,
-					min_hits       = 2#3
-					max_age        = 2# 3
+					min_hits       = 2#2#3
+					max_age        = 7#2#2# 3
 					death_age      = 10
 					refine_thresh  = -0.1 #-0.3 # not in use
 
@@ -241,7 +241,7 @@ class AB3DMOT(object):
 					metric = 'diou_3d'  # 'dist_3d'
 					metric_thres_1 = -0.4  # 4
 					metric_thres_2 = -0.7  # 5
-					score_thres = 0.8  # 0.78
+					score_thres = 0.3#0.8  # 0.78
 					min_hits = 3
 					max_age = 4
 					death_age = 7
@@ -293,7 +293,7 @@ class AB3DMOT(object):
 					metric = 'diou_3d' #'dist_3d'
 					metric_thres_1 = -0.4#4
 					metric_thres_2 = -0.7#5
-					score_thres    = 0.8#0.78
+					score_thres    = 0.8#0.8#0.78
 					min_hits = 3
 					max_age = 4
 					death_age = 7
@@ -656,12 +656,12 @@ class AB3DMOT(object):
 
 		# unmatched_dets_ind2_high are indices in the sublist  'high_unmatched_dets'
 		# the return value should be in respect to  larger list: 'dets'
-		unmatched_dets_ind_high_out = [high_ind[i].astype(np.int64) for i in unmatched_dets_ind2_high]
+		unmatched_dets_ind_high_out = [high_ind[i].astype(np.int) for i in unmatched_dets_ind2_high]
 
 
 		# unmatched_dets_ind2_low are indices in the sublist  'low_unmatched_dets'
 		# the return value should be in respect to  larger list: 'dets'
-		unmatched_dets_ind_low_out = [low_ind[i].astype(np.int64) for i in unmatched_dets_ind2_low]
+		unmatched_dets_ind_low_out = [low_ind[i].astype(np.int) for i in unmatched_dets_ind2_low]
 
 
 		# there is an error if they share common indexes
@@ -740,11 +740,11 @@ class AB3DMOT(object):
 
 		# unmatched_dets_ind2_high are indices in the sublist  'unmatched_dets'
 		# the return value should be in respect to  larger list: 'unmatched_dets_ind_input'
-		unmatched_dets_ind_high_out = [unmatched_dets_ind_input[high_ind[i]].astype(np.int64) for i in unmatched_dets_ind2_high]
+		unmatched_dets_ind_high_out = [unmatched_dets_ind_input[high_ind[i]].astype(np.int) for i in unmatched_dets_ind2_high]
 
 		# unmatched_dets_ind2_low are indices in the sublist  'unmatched_dets'
 		# the return value should be in respect to  larger list: 'unmatched_dets_ind_input' and 'candidates_trks'
-		unmatched_dets_ind_low_out = [unmatched_dets_ind_input[low_ind[i]].astype(np.int64) for i in unmatched_dets_ind2_low]
+		unmatched_dets_ind_low_out = [unmatched_dets_ind_input[low_ind[i]].astype(np.int) for i in unmatched_dets_ind2_low]
 
 		# there is an error if they share common indexes
 		assert(len(np.intersect1d(unmatched_dets_ind_high_out,unmatched_dets_ind_low_out))==0)

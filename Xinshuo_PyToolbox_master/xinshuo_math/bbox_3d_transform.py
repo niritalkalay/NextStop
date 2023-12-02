@@ -4,12 +4,12 @@
 import numpy as np, copy
 from numba import jit
 
-@jit(nopython=True)
+@jit          
 def poly_area(x,y):
 	""" Ref: http://stackoverflow.com/questions/24467972/calculate-area-of-polygon-given-x-y-coordinates """
 	return 0.5*np.abs(np.dot(x,np.roll(y,1))-np.dot(y,np.roll(x,1)))
 
-@jit(nopython=True)
+@jit         
 def box3d_vol(corners):
 	''' corners: (8,3) no assumption on axis direction '''
 	a = np.sqrt(np.sum((corners[0,:] - corners[1,:])**2))
@@ -20,7 +20,7 @@ def box3d_vol(corners):
 #################### option 1 for computing polygon overlap
 from scipy.spatial import ConvexHull
 
-@jit(nopython=True)
+@jit          
 def convex_hull_intersection(p1, p2):
 	""" Compute area of two convex hull's intersection area.
 		p1,p2 are a list of (x,y) tuples of hull vertices.
@@ -126,7 +126,7 @@ def iou3d(corners1, corners2):
 	iou = inter_vol / (vol1 + vol2 - inter_vol)
 	return iou, iou_2d
 
-@jit(nopython=True)
+@jit          
 def roty(t):
 	''' Rotation about the y-axis. '''
 	c = np.cos(t)

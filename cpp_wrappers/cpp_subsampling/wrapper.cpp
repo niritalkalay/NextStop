@@ -313,22 +313,22 @@ static PyObject* batch_subsampling(PyObject* self, PyObject* args, PyObject* key
 
 	// Fill output array with values
 	size_t size_in_bytes = subsampled_points.size() * 3 * sizeof(float);
-	memcpy(PyArray_DATA(res_points_obj), subsampled_points.data_ptr(), size_in_bytes);
+	memcpy(PyArray_DATA(res_points_obj), subsampled_points.data(), size_in_bytes);
 	size_in_bytes = Nb * sizeof(int);
-	memcpy(PyArray_DATA(res_batches_obj), subsampled_batches.data_ptr(), size_in_bytes);
+	memcpy(PyArray_DATA(res_batches_obj), subsampled_batches.data(), size_in_bytes);
 	if (use_feature)
 	{
 		size_in_bytes = subsampled_points.size() * fdim * sizeof(float);
 		res_features_obj = PyArray_SimpleNew(2, feature_dims, NPY_FLOAT);
-		memcpy(PyArray_DATA(res_features_obj), subsampled_features.data_ptr(), size_in_bytes);
+		memcpy(PyArray_DATA(res_features_obj), subsampled_features.data(), size_in_bytes);
 	}
 	if (use_classes)
 	{
 		size_in_bytes = subsampled_points.size() * ldim * sizeof(int);
 		res_classes_obj = PyArray_SimpleNew(2, classes_dims, NPY_INT);
 		res_ins_classes_obj = PyArray_SimpleNew(2, classes_dims, NPY_INT);
-		memcpy(PyArray_DATA(res_classes_obj), subsampled_classes.data_ptr(), size_in_bytes);
-		memcpy(PyArray_DATA(res_ins_classes_obj), subsampled_ins_classes.data_ptr(), size_in_bytes);
+		memcpy(PyArray_DATA(res_classes_obj), subsampled_classes.data(), size_in_bytes);
+		memcpy(PyArray_DATA(res_ins_classes_obj), subsampled_ins_classes.data(), size_in_bytes);
 	}
 
 
@@ -573,20 +573,20 @@ static PyObject* cloud_subsampling(PyObject* self, PyObject* args, PyObject* key
 
 	// Fill output array with values
 	size_t size_in_bytes = subsampled_points.size() * 3 * sizeof(float);
-	memcpy(PyArray_DATA(res_points_obj), subsampled_points.data_ptr(), size_in_bytes);
+	memcpy(PyArray_DATA(res_points_obj), subsampled_points.data(), size_in_bytes);
 	if (use_feature)
 	{
 		size_in_bytes = subsampled_points.size() * fdim * sizeof(float);
 		res_features_obj = PyArray_SimpleNew(2, feature_dims, NPY_FLOAT);
-		memcpy(PyArray_DATA(res_features_obj), subsampled_features.data_ptr(), size_in_bytes);
+		memcpy(PyArray_DATA(res_features_obj), subsampled_features.data(), size_in_bytes);
 	}
 	if (use_classes)
 	{
 		size_in_bytes = subsampled_points.size() * ldim * sizeof(int);
 		res_classes_obj = PyArray_SimpleNew(2, classes_dims, NPY_INT);
 		res_ins_classes_obj = PyArray_SimpleNew(2, classes_dims, NPY_INT);
-		memcpy(PyArray_DATA(res_classes_obj), subsampled_classes.data_ptr(), size_in_bytes);
-		memcpy(PyArray_DATA(res_ins_classes_obj), subsampled_ins_classes.data_ptr(), size_in_bytes);
+		memcpy(PyArray_DATA(res_classes_obj), subsampled_classes.data(), size_in_bytes);
+		memcpy(PyArray_DATA(res_ins_classes_obj), subsampled_ins_classes.data(), size_in_bytes);
 	}
 
 

@@ -144,7 +144,7 @@ class PanopticEval:
       pred_areas = np.array([counts_pred[id2idx_pred[id]] for id in pred_labels])
       intersections = counts_combo
       unions = gt_areas + pred_areas - intersections
-      ious = intersections.astype(np.float32) / unions.astype(np.float32)
+      ious = intersections.astype(np.float) / unions.astype(np.float)
 
 
       tp_indexes = ious > 0.5
@@ -388,6 +388,7 @@ class Panoptic4DEval:
 
     #print ('num tubes:', len(list(cl_preds.items())))
     AQ_overall = np.sum(self.pan_aq_ovr)/ np.sum(num_tubes[1:9])
+    AQ_overall_things = np.sum(self.pan_aq[1:9].sum())/ np.sum(num_tubes[1:9])
     AQ = self.pan_aq / np.maximum(num_tubes, self.eps)
 
     iou_mean, iou, iou_p, iou_r = self.getSemIoU()
@@ -396,7 +397,7 @@ class Panoptic4DEval:
     AQ_r = np.mean(recalls)
 
     PQ4D =  math.sqrt(AQ_overall*iou_mean)
-    return PQ4D, AQ_overall, AQ, AQ_p, AQ_r,  iou, iou_mean, iou_p, iou_r
+    return PQ4D, AQ_overall, AQ, AQ_p, AQ_r,  iou, iou_mean, iou_p, iou_r , AQ_overall_things
 
 
   #############################  Panoptic STUFF ################################

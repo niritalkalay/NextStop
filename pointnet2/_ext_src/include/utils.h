@@ -9,7 +9,7 @@
 
 #define CHECK_CUDA(x)                                          \
   do {                                                         \
-    AT_ASSERT(x.is_cuda(), #x " must be a CUDA tensor"); \
+    AT_ASSERT(x.type().is_cuda(), #x " must be a CUDA tensor"); \
   } while (0)
 
 #define CHECK_CONTIGUOUS(x)                                         \

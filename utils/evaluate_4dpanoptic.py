@@ -277,8 +277,8 @@ if __name__ == '__main__':
           print(label_file + " Instances: " + str(dict) + ", merged into " + str(instance >>16) + " (" + str(instance_ids.shape[0]) + " )")
     #"""
     #print("count ", count - 1)
-    #if count >100:
-    #    continue
+    #if count >10:
+    #    break
 
     # end added
     class_evaluator.addBatch(label_file.split('/')[-3], u_pred_sem_class, u_pred_inst, u_label_sem_class, u_label_inst)
@@ -318,7 +318,7 @@ if __name__ == '__main__':
 
 
 
-  LSTQ, LAQ_ovr, LAQ, AQ_p, AQ_r,  iou, iou_mean, iou_p, iou_r = class_evaluator.getPQ4D()
+  LSTQ, LAQ_ovr, LAQ, AQ_p, AQ_r,  iou, iou_mean, iou_p, iou_r,AQ_overall_things = class_evaluator.getPQ4D()
   F1_score = 2.0 * (AQ_p*AQ_r) / (AQ_p+AQ_r)
   things_iou = iou[1:9].mean()
   stuff_iou = iou[9:].mean()
@@ -327,6 +327,7 @@ if __name__ == '__main__':
   print ("=== Results ===")
   print ("LSTQ:", LSTQ)
   print("S_assoc (LAQ):", LAQ_ovr)
+  print("S_assoc Things (LAQ):", AQ_overall_things)
   #print("precision (assoc) : ",AQ_p )
   #print("recall (assoc) : ",AQ_r )
   #print("F1 Score (assoc) : ", F1_score)

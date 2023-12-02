@@ -221,7 +221,7 @@ static PyObject* batch_neighbors(PyObject* self, PyObject* args, PyObject* keywd
 
 	// Fill output array with values
 	size_t size_in_bytes = Nq * max_neighbors * sizeof(int);
-	memcpy(PyArray_DATA(res_obj), neighbors_indices.data_ptr(), size_in_bytes);
+	memcpy(PyArray_DATA(res_obj), neighbors_indices.data(), size_in_bytes);
 
 	// Merge results
 	ret = Py_BuildValue("N", res_obj);

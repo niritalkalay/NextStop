@@ -9,7 +9,7 @@ class Filter(object):
 		self.id = ID
 		self.hits = 1           		# number of total hits including the first detection
 		self.info = info        		# other information associated
-		self.count_classes = np.zeros(34,dtype=np.int64)
+		self.count_classes = np.zeros(34,dtype=np.int)
 
 class KF(Filter):
 	def __init__(self, bbox3D, info, ID,P0=None,Q=None,R=None):
