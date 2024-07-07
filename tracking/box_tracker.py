@@ -13,7 +13,7 @@ from AB3DMOT_libs.io import load_detection, get_saving_dir, get_frame_det, save_
 #from AB3DMOT_libs.kitti_calib import Calibration
 #import cc3d
 #from sklearn.cluster import DBSCAN
-from sklearn.cluster import OPTICS, cluster_optics_dbscan
+from sklearn.cluster import OPTICS, AgglomerativeClustering
 #from scipy.optimize import linear_sum_assignment
 from sklearn.neighbors import KDTree
 from AB3DMOT_libs.dist_metrics import iou_raw
@@ -1321,12 +1321,6 @@ def main(args):
 
         point_names.extend(seq_point_names)
 
-        # pred_voxel_path = os.path.join(pth_js3c_output, "sequences",'{0:02d}'.format(sequence), "predictions")
-        if with_sc:
-            pred_voxel_path = os.path.join(pth_js3c_output, "sequences", '{0:02d}'.format(sequence))
-            pred_voxel_names = get_filesnames(parent_path=pred_voxel_path, extension='voxels.npy')
-            pred_voxel_sem_names = get_filesnames(parent_path=pred_voxel_path, extension='sem_label.npy')
-
         # init save path
         parent_save_path= (os.path.join(full_save_path, '{0:02d}'.format(sequence)))
         if not os.path.exists(parent_save_path):
@@ -1532,14 +1526,6 @@ def main(args):
             #       'traffic-sign'
             #   ]
 
-            # 1.5 scene completion
-
-            if with_sc:
-                # s= time.time()
-                sc_pred_voxel_coords = np.load(os.path.join(pred_voxel_path, str(idx) + ".voxels.npy"))
-                sc_seg_label = np.load(os.path.join(pred_voxel_path, str(idx) + ".sem_label.npy"))
-                # print("loadJS3C : time = ", time.time() - s)
-
             vehicles_str = ["car", "moving-car", "bus", "moving-bus", "truck", "moving-truck", "other-vehicle",
                             "moving-other-vehicle"]
             car_class_id = [id for id, str in det_id2str.items() if str in vehicles_str]
@@ -1547,11 +1533,6 @@ def main(args):
             for clsID in car_class_id:
                 cars_mask = cars_mask | (
                             label_sem_class == clsID)  # if input is from 4DStop, then car class is 1, else car is 10
-            if with_sc:
-                # car_class_id_global = [id for id, str in config_data['labels'].items() if str in vehicles_str]
-                grid_cars_mask = np.zeros(sc_seg_label.shape, dtype=bool)
-                for clsID in car_class_id:
-                    grid_cars_mask = grid_cars_mask | (sc_seg_label == clsID)
 
             bikes_str = ["bicycle", "bicyclist", "moving-bicyclist", "motorcycle", "motorcyclist",
                          "moving-motorcyclist"]
@@ -1560,11 +1541,6 @@ def main(args):
             for clsID in bike_class_id:
                 bikes_mask = bikes_mask | (
                             label_sem_class == clsID)  # if input is from 4DStop, then car class is 2, else car is 10
-            if with_sc:
-                # bike_class_id_global = [id for id, str in config_data['labels'].items() if str in bikes_str]
-                grid_bikes_mask = np.zeros(sc_seg_label.shape, dtype=bool)
-                for clsID in bike_class_id:
-                    grid_bikes_mask = grid_bikes_mask | (sc_seg_label == clsID)
 
             Pedestrian_str = ["person", "moving-person"]
             # Pedestrian_str =  ["bicycle", "moving-bicyclist", "motorcycle", "moving-motorcyclist", "bicyclist", "moving-bicyclist","person","moving-person"]
@@ -1573,35 +1549,18 @@ def main(args):
             for clsID in Pedestrian_class_id:
                 Pedestrian_mask = Pedestrian_mask | (
                         label_sem_class == clsID)  # if input is from 4DStop, then car class is 2, else car is 10
-            if with_sc:
-                # Pedestrian_class_id_global = [id for id, str in config_data['labels'].items() if str in Pedestrian_str]
-                grid_Pedestrian_mask = np.zeros(sc_seg_label.shape, dtype=bool)
-                for clsID in Pedestrian_class_id:
-                    grid_Pedestrian_mask = grid_Pedestrian_mask | (sc_seg_label == clsID)
 
-            if with_sc:
-                dets_frame_vehicles = get_detections(points, label_inst * cars_mask, label_sem_class, sem_class_scores,
-                                                     point_grid=sc_pred_voxel_coords,
-                                                     grid_sem=sc_seg_label * grid_cars_mask, minPoints=100)
 
-                dets_frame_bikes = get_detections(points, label_inst * bikes_mask, label_sem_class, sem_class_scores,
-                                                  point_grid=sc_pred_voxel_coords,
-                                                  grid_sem=sc_seg_label * grid_bikes_mask, minPoints=20)
-                dets_frame_pedestrian_before = get_detections(points, label_inst * Pedestrian_mask, label_sem_class,
-                                                              sem_class_scores, point_grid=sc_pred_voxel_coords,
-                                                              grid_sem=sc_seg_label * grid_Pedestrian_mask,
-                                                              minPoints=15)
-            else:
-                dets_frame_vehicles = get_detections(points, label_inst * cars_mask, label_sem_class, sem_class_scores,
-                                                     point_grid=None,
-                                                     grid_sem=None, minPoints=None)
-                dets_frame_bikes = get_detections(points, label_inst * bikes_mask, label_sem_class, sem_class_scores,
-                                                  point_grid=None,
-                                                  grid_sem=None, minPoints=None)
-                dets_frame_pedestrian_before = get_detections(points, label_inst * Pedestrian_mask, label_sem_class,
-                                                              sem_class_scores, point_grid=None,
-                                                              grid_sem=None,
-                                                              minPoints=None)
+            dets_frame_vehicles = get_detections(points, label_inst * cars_mask, label_sem_class, sem_class_scores,
+                                                 point_grid=None,
+                                                 grid_sem=None, minPoints=None)
+            dets_frame_bikes = get_detections(points, label_inst * bikes_mask, label_sem_class, sem_class_scores,
+                                              point_grid=None,
+                                              grid_sem=None, minPoints=None)
+            dets_frame_pedestrian_before = get_detections(points, label_inst * Pedestrian_mask, label_sem_class,
+                                                          sem_class_scores, point_grid=None,
+                                                          grid_sem=None,
+                                                          minPoints=None)
 
             dets_frame_pedestrian = dets_frame_pedestrian_before
             #dets_frame_pedestrian = filterPedestrian(dets_frame_pedestrian_before,points[:,:3],Pedestrian_mask)

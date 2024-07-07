@@ -85,3 +85,6 @@ wcwidth==0.2.6
 Werkzeug==2.2.3
 widgetsnbextension==4.0.9
 zipp==3.17.0
+numba==0.58.1
+glob2==0.7
+opencv-python==4.10.0.84

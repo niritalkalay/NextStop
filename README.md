@@ -52,28 +52,18 @@ tracking/box_tracker_to_labels.py
 if you dont want to run this sample you can run from your own path by :
 1. bounding box tracker :
 ```
-tracking/box_tracker.py --dataset [path to the SemanticKitti point cloud] --data_cfg [path to SemanticKitti config file] -- --predictions [path to prediction] --sequences [sequence number] --split [valid or not]
+tracking/box_tracker.py --dataset [path to the SemanticKitti point cloud] --data_cfg [path to SemanticKitti config file] --predictions [path to prediction] --sequences [sequence number] --split [valid or not]
 ```
 2. from bounding box to labels tracker:
 ```
-tracking/box_tracker_to_labels.py --dataset [path to the SemanticKitti point cloud] --data_cfg [path to SemanticKitti config file] -- --predictions [path to prediction] --sequences [sequence number] --split [valid or not]
+tracking/box_tracker_to_labels.py --dataset [path to the SemanticKitti point cloud] --data_cfg [path to SemanticKitti config file] --predictions [path to prediction] --sequences [sequence number] --split [valid or not]
 ```
 
 # Evaluation
 
 ## eval_lstq
 ```
-utils/evaluate_4dpanoptic.py --dataset=/media/nirit/mugiwara/datasets/SemanticKitti/ --predictions=/media/nirit/mugiwara/code/4D-StOP/4D-StOP-main/nirit_test_net/Log_2022-06-13_17-33-24_importance_None_str1_bigpug_2_current_chkp/AB3DMOT_tracker/to_labels/ --data_cfg=/media/nirit/mugiwara/datasets/SemanticKitti/semantic-kitti.yaml --split valid
-```
-
-## eval_motp
-```
---dataset=/media/nirit/mugiwara/datasets/SemanticKitti/ --predictions=./predictions_data/NextStop_tracker/to_labels/ --data_cfg=/media/nirit/mugiwara/datasets/SemanticKitti/semantic-kitti.yaml --split valid
-```
-
-## eval_lD
-```
-utils/evaluate_identity.py --dataset=/media/nirit/mugiwara/datasets/SemanticKitti/ --predictions=./predictions_data/NextStop_tracker/to_labels/ --data_cfg=/media/nirit/mugiwara/datasets/SemanticKitti/semantic-kitti.yaml --split valid
+utils/evaluate_4dpanoptic.py --dataset [path to the SemanticKitti point cloud] --predictions [path to NextStop prediction folder]] --data_cfg [path to SemanticKitti config file] --split [valid or not]
 ```
 
 # Acknowledgments
