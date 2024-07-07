@@ -288,9 +288,9 @@ class Identity(_BaseMetric):
             match_rows, match_cols = linear_sum_assignment(fn_mat + fp_mat)
 
             # Accumulate basic statistics
-            res[i]['IDFN'] = fn_mat[match_rows, match_cols].sum().astype(np.int64)
-            res[i]['IDFP'] = fp_mat[match_rows, match_cols].sum().astype(np.int64)
-            res[i]['IDTP'] = (gt_id_count.sum() - res[i]['IDFN']).astype(np.int64)
+            res[i]['IDFN'] = fn_mat[match_rows, match_cols].sum().astype(np.int)
+            res[i]['IDFP'] = fp_mat[match_rows, match_cols].sum().astype(np.int)
+            res[i]['IDTP'] = (gt_id_count.sum() - res[i]['IDFN']).astype(np.int)
 
 
             #res[i]['Dets'] = self.data[i]['num_tracker_dets']
@@ -311,26 +311,29 @@ class Identity(_BaseMetric):
         If 'ignore_empty_classes' is True, then it only sums over classes with at least one gt or predicted detection.
         """
         res = {}
+        things_dict = dict(enumerate(all_res[1:9].flatten(), 1))
         for field in self.integer_fields:
             if ignore_empty_classes:
-                res[field] = self._combine_sum({k: v for k, v in all_res.items()
+                res[field] = self._combine_sum({k: v for k, v in things_dict.items()
                                                 if v['IDTP'] + v['IDFN'] + v['IDFP'] > 0 + np.finfo('float').eps},
                                                field)
             else:
-                res[field] = self._combine_sum({k: v for k, v in all_res.items()}, field)
+
+                res[field] = self._combine_sum({k: v for k, v in things_dict.items()}, field)
         for field in self.float_fields:
             if ignore_empty_classes:
-                res[field] = np.mean([v[field] for v in all_res.values()
+                res[field] = np.mean([v[field] for v in things_dict.values()
                                       if v['IDTP'] + v['IDFN'] + v['IDFP'] > 0 + np.finfo('float').eps], axis=0)
             else:
-                res[field] = np.mean([v[field] for v in all_res.values()], axis=0)
+                res[field] = np.mean([v[field] for v in things_dict.values()], axis=0)
         return res
 
     def combine_classes_det_averaged(self, all_res):
         """Combines metrics across all classes by averaging over the detection values"""
         res = {}
+        things_dict = dict(enumerate(all_res[1:9].flatten(), 1))
         for field in self.integer_fields:
-            res[field] = self._combine_sum(all_res, field)
+            res[field] = self._combine_sum(things_dict, field)
         res = self._compute_final_fields(res)
         return res
 
@@ -472,8 +475,34 @@ class Identity(_BaseMetric):
 
     #"""
 
-    def print_results(self,res):
-        json_save = {}
+    def print_results(self,res,combine_res ):
+
+
+        data = []
+        index = []
+        for key, value in combine_res.items():
+            IDF1 = "{:.2f}".format(value['IDF1'])
+            IDR = "{:.2f}".format(value['IDR'])
+            IDP = "{:.2f}".format(value['IDP'])
+            IDTP = value['IDTP']
+            IDFN = value['IDFN']
+            IDFP = value['IDFP']
+
+            Dets = value['Dets']
+            GT_Dets = value['GT_Dets']
+            # IDs = res[cls_id]['IDs']
+            # GT_IDs = res[cls_id]['GT_IDs']
+
+            data.append([IDF1, IDR, IDP, IDTP, IDFN, IDFP, Dets, GT_Dets])
+            index.append(key)
+
+        df = pd.DataFrame(data, columns=['IDF1', 'IDR', 'IDP', 'IDTP', 'IDFN', 'IDFP', 'Dets', 'GT_Dets'],
+                          index=index)
+        #df = df.style.set_caption('COMBINED')
+        print(df)
+        print("")
+
+        ##########
         n_classes = len(res)
         data = []
         for cls_id in range(n_classes):
@@ -498,20 +527,36 @@ class Identity(_BaseMetric):
 
             data.append([IDF1,IDR,IDP,IDTP,IDFN,IDFP,Dets,GT_Dets])
 
-        df = pd.DataFrame(data, columns=['IDF1', 'IDR', 'IDP', 'IDTP','IDFN', 'IDFP','Dets','GT_Dets'],
+        df2 = pd.DataFrame(data, columns=['IDF1', 'IDR', 'IDP', 'IDTP','IDFN', 'IDFP','Dets','GT_Dets'],
                           index=['car', 'bicycle','motorcycle', 'truck','other-vehicle','person','bicyclist','motorcyclist'])
-        print(df)
+        print(df2)
 
 
     def getID(self):
 
         res = self.eval_sequence()
 
-        self.print_results(res)
+        # combine classes
 
-        return self.data, res
+        combined_res = {}
+        #res['COMBINED_SEQ'] = {}
+        combined_res['cls_comb_cls_av'] = {}
+        combined_res['cls_comb_det_av'] = {}
+
+        combined_res['cls_comb_cls_av']= self.combine_classes_class_averaged(res)
+        combined_res['cls_comb_det_av'] = self.combine_classes_det_averaged(res)
+        #res['COMBINED_SEQ']c['ID'] = \
+        #    self.combine_classes_class_averaged(res)
+        #res['COMBINED_SEQ']['cls_comb_det_av']['ID'] = \
+        #    self.combine_classes_det_averaged(res)
+
+
+        self.print_results(res,combined_res)
+
+        # results on all things class
 
 
 
 
 
+        return self.data, res , combined_res

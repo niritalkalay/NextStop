@@ -208,7 +208,7 @@ class AB3DMOT(object):
 					metric_thres_2 = -0.5
 					score_thres    = 0.7 #detection thres for high  score,
 					min_hits       = 2#3
-					max_age        = 2# 3
+					max_age        = 7# 3
 					death_age      = 10
 					refine_thresh  = -0.1 #-0.3 # not in use
 
@@ -241,7 +241,7 @@ class AB3DMOT(object):
 					metric = 'diou_3d'  # 'dist_3d'
 					metric_thres_1 = -0.4  # 4
 					metric_thres_2 = -0.7  # 5
-					score_thres = 0.8  # 0.78
+					score_thres = 0.3  # 0.78
 					min_hits = 3
 					max_age = 4
 					death_age = 7

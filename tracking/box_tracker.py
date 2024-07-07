@@ -167,7 +167,12 @@ def parse_args():
     parser.add_argument('--predictions', type=str,
                         default='./predictions_data',
                         help='path to prediction ')
-    parser.add_argument('--sequences', type=int, default=8, help='sequence number ')
+    parser.add_argument(
+        '--sequences', '-s',
+        dest='sequences',
+        type=str,
+        default='8'
+    )
     parser.add_argument('--split', type=str, default='valid', help='valid or not ')
     args = parser.parse_args()
     return args
@@ -778,18 +783,91 @@ def get_detections(points, label_inst, label_sem_class, scores, point_grid=None,
     return dets_frame
 
 
-def filterPedestrian(dets_all):
+def filterPedestrian(dets_all,points=None,Pedestrian_Mask=None):
     dets, info = dets_all['dets'], dets_all['info']
 
     idx_to_keep = []
+
+    bb_list = []
+    additional_info = []
+
     for d, det in enumerate(dets):
         h, w, l, x, y, z, theta = det
 
         if l <= 1.6 and w <= 1.6:
             idx_to_keep.append(d)
+        else:
+            if points is None:
+                raise "error!"
+            #draw_scenes_raw(points=points, gt_boxes=[det], title='large pedestrian')
+
+            # try  to  split:
+            hierarchical_cluster = AgglomerativeClustering(n_clusters=None,
+                                                           distance_threshold=15,
+                                                           affinity='euclidean',
+                                                           linkage='ward')
+
+
+            # cluster
+            x_min = x - (l) / 2
+            y_min = y - (w) / 2
+            z_min = z - (h) / 2
+
+            x_max = x + (l) / 2
+            y_max = y + (w) / 2
+            z_max = z + (h) / 2
+
+            idx_x = np.intersect1d(np.where(points[:, 0] <= x_max)[0], np.where(points[:, 0] >= x_min)[0])
+            idx_y = np.intersect1d(np.where(points[:, 1] <= y_max)[0], np.where(points[:, 1] >= y_min)[0])
+            idx_z = np.intersect1d(np.where(points[:, 2] <= z_max)[0], np.where(points[:, 2] >= z_min)[0])
+            idx = np.intersect1d(np.intersect1d(idx_x, idx_y), idx_z)
+
+            valid_idx=np.intersect1d(idx,np.where(Pedestrian_Mask)[0])
+
+            #draw_scenes_raw(points=points[valid_idx,:],
+            #                title='points[idx]')
+
+            labels = hierarchical_cluster.fit_predict(points[valid_idx, :3])
+            #print('found ', len(np.unique(labels)))
+
+
+
+            for l in np.unique(labels):
+                if l == -1:
+                    continue
+                ind = valid_idx[np.where(labels == l)]
+
+                bb = points_to_Box3D(points[ind])
+                info_bb = info[d]
+                info_bb[6] = info_bb[6]* 0.9# lower the score
+
+                #info_array[0, 1] = obj_class_label
+                #info_array[0, 2] = ins_id
+                #info_array[0, 6] = np.max(object_scores)
+
+                # bb_list.append(bb)
+                bb_raw =  Box3D.bbox2array_raw(bb)
+
+                #draw_scenes_raw(points=points, gt_boxes=[det], ref_boxes=[bb_raw],
+                #                title='large pedestrian. green - new cluster')
+
+                h, w, l, x, y, z, theta = bb_raw
+                if l <= 1.6 and w <= 1.6:
+                    bb_list = np.vstack((bb_list, bb_raw)) if len(bb_list) != 0 else np.array(bb_raw, ndmin=2)
+                    additional_info = np.vstack((additional_info, info_bb)) if len(additional_info) != 0 else np.array(info_bb, ndmin=2)
+
+                #print("")
+
+
+
     if len(idx_to_keep) == 0:
-        return dets_all
-    return {'dets': dets[idx_to_keep], 'info': info[idx_to_keep, :]}
+        dets_res = bb_list if len(bb_list) != 0 else []
+        info_res = additional_info if len(additional_info) != 0 else []
+    else:
+        dets_res =  np.vstack((bb_list, dets[idx_to_keep])) if len(bb_list) != 0 else dets[idx_to_keep]
+        info_res = np.vstack((additional_info, info[idx_to_keep, :])) if len(additional_info) != 0 else info[idx_to_keep, :]
+
+    return {'dets': dets_res, 'info': info_res}
 
 
 def get_detections_from_segmentation(points, label_sem_class):
@@ -1215,16 +1293,26 @@ def main(args):
         det_id2str = {key: config_data['labels'][value] for key, value in config_data['learning_map_inv'].items()}
 
     # get test set
-    test_sequences = [args.sequences]
+    test_sequences = [int(x) for x in args.sequences.split(',')]
 
     poses = []
     total_time = 0.0
     for sequence in test_sequences:
-        calib = parse_calibration(os.path.join(dataset, "sequences", '{0:02d}'.format(sequence), "calib.txt"))
-        poses_f64 = parse_poses(os.path.join(dataset, "sequences", '{0:02d}'.format(sequence), "poses.txt"), calib)
-        poses.append([pose.astype(np.float32) for pose in poses_f64])
 
-    for poses_seq, sequence in zip(poses, test_sequences):
+        base_save_path = '{}/NextStop_tracker'.format(prediction_dir)
+        if not os.path.exists(base_save_path):
+            os.makedirs(base_save_path)
+        full_save_path = (os.path.join(base_save_path, 'sequences'))
+        if not os.path.exists(full_save_path):
+            os.makedirs(full_save_path)
+
+        print("processing sequence = ",sequence)
+        #calib = parse_calibration(os.path.join(dataset, "sequences", '{0:02d}'.format(sequence), "calib.txt"))
+        #poses_f64 = parse_poses(os.path.join(dataset, "sequences", '{0:02d}'.format(sequence), "poses.txt"), calib)
+        #poses.append([pose.astype(np.float32) for pose in poses_f64])
+
+    #for poses_seq, sequence in zip(poses, test_sequences):
+
         point_names = []
         point_paths = os.path.join(dataset, "sequences", '{0:02d}'.format(sequence), "velodyne")
         # populate the label names
@@ -1240,15 +1328,24 @@ def main(args):
             pred_voxel_sem_names = get_filesnames(parent_path=pred_voxel_path, extension='sem_label.npy')
 
         # init save path
-        full_save_path = (os.path.join(base_save_path, 'predictions'))
+        parent_save_path= (os.path.join(full_save_path, '{0:02d}'.format(sequence)))
+        if not os.path.exists(parent_save_path):
+            os.makedirs(parent_save_path)
+
+
+        full_save_path = (os.path.join(parent_save_path, 'predictions'))
         if not os.path.exists(full_save_path):
             os.makedirs(full_save_path)
 
-        vis_dir = os.path.join(full_save_path, 'vis_debug')
-        if not os.path.exists(vis_dir):
-            os.makedirs(vis_dir)
+        #vis_dir = os.path.join(full_save_path, 'vis_debug')
+        #if not os.path.exists(vis_dir):
+        #    os.makedirs(vis_dir)
 
-        detection_save_path = (os.path.join(base_save_path, 'detection'))
+        #vis_dir = os.path.join(full_save_path, 'vis_debug')
+        #if not os.path.exists(vis_dir):
+        #    os.makedirs(vis_dir)
+
+        detection_save_path = (os.path.join(parent_save_path, 'detection'))
         if not os.path.exists(detection_save_path):
             os.makedirs(detection_save_path)
 
@@ -1289,11 +1386,17 @@ def main(args):
             eval_dir_dict[index] = os.path.join(full_save_path, 'data_%d' % index);
             mkdir_if_missing(eval_dir_dict[index])
 
-        eval_file_dict, save_trk_dir, affinity_dir, affinity_vis = get_saving_dir(eval_dir_dict=eval_dir_dict,
-                                                                                  seq_name="sequences" + '{0:02d}'.format(
-                                                                                      sequence),
-                                                                                  save_dir=full_save_path,
-                                                                                  num_hypo=AB3DMOT_cgf.num_hypo)
+        #eval_file_dict, save_trk_dir, affinity_dir, affinity_vis = get_saving_dir(eval_dir_dict=eval_dir_dict,
+        #                                                                          seq_name="sequences" + '{0:02d}'.format(
+        #                                                                              sequence),
+        #                                                                          save_dir=full_save_path,
+        #                                                                          num_hypo=AB3DMOT_cgf.num_hypo)
+
+        eval_file_dict, save_trk_dir = get_saving_dir(eval_dir_dict=eval_dir_dict,
+                                                      seq_name="sequences" + '{0:02d}'.format(
+                                                          sequence),
+                                                      save_dir=full_save_path,
+                                                      num_hypo=AB3DMOT_cgf.num_hypo)
 
         time_str = get_timestring()
         log_path = os.path.join(AB3DMOT_cgf.save_root,
@@ -1310,37 +1413,34 @@ def main(args):
 
         tracker_pedestrians = AB3DMOT(cfg=AB3DMOT_cgf,
                                       cat='Pedestrian',
-                                      calib=calib,
+                                      calib=None,#calib,
                                       # Calibration(os.path.join(dataset, "sequences", '{0:02d}'.format(sequence), "calib.txt")),
-                                      oxts=np.array(poses_seq),  # FrameNumX4X4#imu_poses,
+                                      oxts=None,#np.array(poses_seq),  # FrameNumX4X4#imu_poses,
                                       log=log,  # log_file,
-                                      ID_init=1,
-                                      debug_path=base_save_path)
+                                      ID_init=1)
 
         tracker_vehicles = AB3DMOT(cfg=AB3DMOT_cgf,
                                    cat='Car',
-                                   calib=calib,
+                                   calib=None,#calib,
                                    # Calibration(os.path.join(dataset, "sequences", '{0:02d}'.format(sequence), "calib.txt")),
-                                   oxts=np.array(poses_seq),  # FrameNumX4X4#imu_poses,
+                                   oxts=None,#np.array(poses_seq),  # FrameNumX4X4#imu_poses,
                                    log=log,  # log_file,
-                                   ID_init=1,
-                                   debug_path = base_save_path)
+                                   ID_init=1)
 
         tracker_bikes = AB3DMOT(cfg=AB3DMOT_cgf,
                                 cat='Cyclist',
-                                calib=calib,
+                                calib=None,#calib,
                                 # Calibration(os.path.join(dataset, "sequences", '{0:02d}'.format(sequence), "calib.txt")),
-                                oxts=np.array(poses_seq),  # FrameNumX4X4#imu_poses,
+                                oxts=None,#np.array(poses_seq),  # FrameNumX4X4#imu_poses,
                                 log=log,  # log_file,
-                                ID_init=1,
-                                debug_path = base_save_path)
+                                ID_init=1)
 
         # loop over frames
         for idx, point_file in zip(range(len(point_names)), point_names):
             print("{}/{} ".format(idx, len(point_names)), end="", flush=True)
             times = []
             times.append(time.time())
-            pose = poses_seq[idx]
+            #pose = poses_seq[idx]
 
             # event :  frames 2938- 3475
             # self.gt_trackID_debug = 22
@@ -1362,14 +1462,14 @@ def main(args):
             # if idx!=3319: # filter too small detections
             #    continue
 
-            # if idx !=1638:
+            #if idx !=1:
             #    continue
             # if idx !=2410:
             #    continue
             # if idx < 3000:
             #   continue
-            # if idx > 73:#3959:#3959:#3:#895: jjj
-            #    break
+            #if idx != 31:#3959:#3959:#3:#895: jjj
+            #    continue
             # print("main: frame is ", idx)
 
             # load current frame
@@ -1503,7 +1603,8 @@ def main(args):
                                                               grid_sem=None,
                                                               minPoints=None)
 
-            dets_frame_pedestrian = filterPedestrian(dets_frame_pedestrian_before)
+            dets_frame_pedestrian = dets_frame_pedestrian_before
+            #dets_frame_pedestrian = filterPedestrian(dets_frame_pedestrian_before,points[:,:3],Pedestrian_mask)
 
             # draw_scenes_raw(points, gt_boxes=dets_frame_pedestrian['dets'], title="scan " + str(
             #    idx) + ' before filtering . blue  = detected')  # raw assumes the format [[h,w,l,x,y,z,theta],...]
