@@ -648,7 +648,7 @@ def main(args):
                                                                                 args.dataset,
                                                                                 args.predictions,
                                                                                 os.path.join(args.predictions,
-                                                                                             'AB3DMOT_tracker'))
+                                                                                             'NextStop_tracker'))
 
         classStr2Int_global = {value: key for key, value in config_data['labels'].items()}  # global labels
         classInt2Str_global = config_data['labels']  # global labels
