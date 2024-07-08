@@ -63,7 +63,7 @@ tracking/box_tracker_to_labels.py --dataset [path to the SemanticKitti point clo
 
 ## eval_lstq
 ```
-utils/evaluate_4dpanoptic.py --dataset [path to the SemanticKitti point cloud] --predictions [path to NextStop prediction folder]] --data_cfg [path to SemanticKitti config file] --split [valid or not]
+utils/evaluate_4dpanoptic.py --dataset [path to the SemanticKitti point cloud] --predictions [path to NextStop prediction folder]] --data_cfg [path to SemanticKitti config file] --split [valid or not]  --min_inst_points [50 or 1]
 ```
 
 # Acknowledgments
