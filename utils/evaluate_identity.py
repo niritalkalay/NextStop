@@ -202,8 +202,8 @@ if __name__ == '__main__':
 
         ## debug case
         # GT car : id = 277, total_frames=269 : start 704 , end 1505
-        #if not (count -1 >=277 and  count -1 >=1505):
-        #    continue
+        #if count -1 > 50:
+        #    break
 
         # filter GT
         #
@@ -216,18 +216,24 @@ if __name__ == '__main__':
 
 
         print("frame =", count - 1)
-        #if count - 1 > 20:
+        #if count - 1 > 100:
         #    break
 
         # In section you want to profile
         #pr.enable()
         class_evaluator_ID.addBatch(u_pred_sem_class, u_pred_inst, u_label_sem_class, u_label_inst)
+
         #break
         #pr.disable()
     print("100%")
     #pr.dump_stats('profile.pstat') # to open: snakeviz profile.pstat
     complete_time = time.time() - start_time
 
-    data, res_Id = class_evaluator_ID.getID()
+    data, res_Id ,combined_res_id = class_evaluator_ID.getID()
+
+    # show all classes results of things class
+
+
+
     print("\n")
     res_hota =class_evaluator_HOTA.getHota(data)

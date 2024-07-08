@@ -12,7 +12,7 @@ np.set_printoptions(suppress=True, precision=3)
 
 # A Baseline of 3D Multi-Object Tracking
 class AB3DMOT(object):			  	
-	def __init__(self, cfg, cat,debug_path, calib=None, oxts=None, log=None, ID_init=0):
+	def __init__(self, cfg, cat,debug_path=None, calib=None, oxts=None, log=None, ID_init=0):
 
 		# vis and log purposes
 		self.vis = cfg.vis # todo
@@ -198,7 +198,7 @@ class AB3DMOT(object):
 		elif cfg.dataset == 'SemanticKITTI':
 			if cfg.det_name == '4D-STop':  # tuned for 4D-STop detections
 				if cat == 'Car':
-					print('Car')
+					#print('Car')
 					#algm, metric, thres, min_hits, max_age = 'hungar', 'giou_3d', -0.2, 3, 6
 					#algm, metric, thres, min_hits, max_age = 'hungar', 'PointsSimilarity', 1, 3, 6
 					# CAR!
@@ -208,7 +208,7 @@ class AB3DMOT(object):
 					metric_thres_2 = -0.5
 					score_thres    = 0.7 #detection thres for high  score,
 					min_hits       = 2#3
-					max_age        = 2# 3
+					max_age        = 7# 3
 					death_age      = 10
 					refine_thresh  = -0.1 #-0.3 # not in use
 
@@ -235,13 +235,13 @@ class AB3DMOT(object):
 					self.P0_candidate = P0
 
 				elif cat == 'Pedestrian':
-					print('Pedestrian')
+					#print('Pedestrian')
 
 					algm = 'hungar'
 					metric = 'diou_3d'  # 'dist_3d'
 					metric_thres_1 = -0.4  # 4
 					metric_thres_2 = -0.7  # 5
-					score_thres = 0.8  # 0.78
+					score_thres = 0.3  # 0.78
 					min_hits = 3
 					max_age = 4
 					death_age = 7
@@ -288,7 +288,7 @@ class AB3DMOT(object):
 					self.P0_candidate = P0
 
 				elif cat == 'Cyclist':
-					print('Cyclist')
+					#print('Cyclist')
 					algm = 'greedy'#'hungar'
 					metric = 'diou_3d' #'dist_3d'
 					metric_thres_1 = -0.4#4

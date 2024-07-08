@@ -7,7 +7,6 @@ import pandas as pd
 from collections import defaultdict
 import cProfile as profile # https://stackoverflow.com/questions/32926847/profiling-a-python-program-with-pycharm-or-any-other-ide\
 import time
-import os
 
 class HOTA(_BaseMetric):
     """Class which implements the HOTA metrics.
@@ -34,19 +33,19 @@ class HOTA(_BaseMetric):
         res = np.array([{} for i in range(Nclass)])
         for i in range(1,Nclass):
             for field in self.float_array_fields + self.integer_array_fields:
-                res[i][field] = np.zeros((len(self.array_labels)), dtype=np.float32)
+                res[i][field] = np.zeros((len(self.array_labels)), dtype=np.float)
             for field in self.float_fields:
                 res[i][field] = 0
 
             # Return result quickly if tracker or gt sequence is empty
             if data[i]['num_tracker_dets'] == 0:
-                res[i]['HOTA_FN'] = data[i]['num_gt_dets'] * np.ones((len(self.array_labels)), dtype=np.float32)
-                res[i]['LocA'] = np.ones((len(self.array_labels)), dtype=np.float32)
+                res[i]['HOTA_FN'] = data[i]['num_gt_dets'] * np.ones((len(self.array_labels)), dtype=np.float)
+                res[i]['LocA'] = np.ones((len(self.array_labels)), dtype=np.float)
                 res[i]['LocA(0)'] = 1.0
                 continue
             if data[i]['num_gt_dets'] == 0:
-                res[i]['HOTA_FP'] = data[i]['num_tracker_dets'] * np.ones((len(self.array_labels)), dtype=np.float32)
-                res[i]['LocA'] = np.ones((len(self.array_labels)), dtype=np.float32)
+                res[i]['HOTA_FP'] = data[i]['num_tracker_dets'] * np.ones((len(self.array_labels)), dtype=np.float)
+                res[i]['LocA'] = np.ones((len(self.array_labels)), dtype=np.float)
                 res[i]['LocA(0)'] = 1.0
                 continue
 
@@ -158,12 +157,48 @@ class HOTA(_BaseMetric):
 
             # Calculate final scores
             res[i]['LocA'] = np.maximum(1e-10, res[i]['LocA']) / np.maximum(1e-10, res[i]['HOTA_TP'])
-            res[i] = self._compute_final_fields(res[i])
+            res[i] = self._compute_final_fields_HOTA(res[i])
         return res
 
 
-    def print_results(self,res):
-        json_save = {}
+    def print_results(self,res,combine_res):
+
+        data = []
+        index = []
+        for key, value in combine_res.items():
+            HOTA = "{:.2f}".format(np.mean(value['HOTA']))
+            DetA = "{:.2f}".format(np.mean(value['DetA']))
+            AssA = "{:.2f}".format(np.mean(value['AssA']))
+            DetRe = "{:.2f}".format(np.mean(value['DetRe']))
+            DetPr = "{:.2f}".format(np.mean(value['DetPr']))
+            AssRe = "{:.2f}".format(np.mean(value['AssRe']))
+            AssPr = "{:.2f}".format(np.mean(value['AssPr']))
+            LocA = "{:.2f}".format(np.mean(value['LocA']))
+
+            HOTA_0 = "{:.2f}".format(value['HOTA(0)'])
+            LocA_0 = "{:.2f}".format(value['LocA(0)'])
+            HOTALocA = "{:.2f}".format(value['HOTALocA(0)'])
+
+            data.append([HOTA, DetA, AssA, DetRe, DetPr, AssRe, AssPr, LocA, HOTA_0, LocA_0, HOTALocA])
+
+            index.append(key)
+
+        df = pd.DataFrame(data, columns=['HOTA', 'DetA', 'AssA', 'DetRe','DetPr', 'AssRe','AssPr','LocA','HOTA_0','LocA_0','HOTALocA'],
+                          index=index)
+        # df = df.style.set_caption('COMBINED')
+
+        # display all columns
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.width', 100)
+
+        print(df)
+        print("")
+
+        ########
+
+
+
+
         n_classes = len(res)
         data = []
         for cls_id in range(n_classes):
@@ -199,7 +234,16 @@ class HOTA(_BaseMetric):
 
         res = self.eval_sequence(data)
 
-        self.print_results(res)
+        combined_res = {}
+        # res['COMBINED_SEQ'] = {}
+        combined_res['cls_comb_cls_av'] = {}
+        combined_res['cls_comb_det_av'] = {}
+
+        combined_res['cls_comb_cls_av'] = self.combine_classes_class_averaged(res)
+        combined_res['cls_comb_det_av'] = self.combine_classes_det_averaged(res)
+
+
+        self.print_results(res, combined_res)
 
         return res
 
@@ -222,37 +266,39 @@ class HOTA(_BaseMetric):
         If 'ignore_empty_classes' is True, then it only sums over classes with at least one gt or predicted detection.
         """
         res = {}
+        things_dict = dict(enumerate(all_res[1:9].flatten(), 1))
         for field in self.integer_array_fields:
             if ignore_empty_classes:
                 res[field] = self._combine_sum(
-                    {k: v for k, v in all_res.items()
+                    {k: v for k, v in things_dict.items()
                      if (v['HOTA_TP'] + v['HOTA_FN'] + v['HOTA_FP'] > 0 + np.finfo('float').eps).any()}, field)
             else:
-                res[field] = self._combine_sum({k: v for k, v in all_res.items()}, field)
+                res[field] = self._combine_sum({k: v for k, v in things_dict.items()}, field)
 
         for field in self.float_fields + self.float_array_fields:
             if ignore_empty_classes:
-                res[field] = np.mean([v[field] for v in all_res.values() if
+                res[field] = np.mean([v[field] for v in things_dict.values() if
                                       (v['HOTA_TP'] + v['HOTA_FN'] + v['HOTA_FP'] > 0 + np.finfo('float').eps).any()],
                                      axis=0)
             else:
-                res[field] = np.mean([v[field] for v in all_res.values()], axis=0)
+                res[field] = np.mean([v[field] for v in things_dict.values()], axis=0)
         return res
 
     def combine_classes_det_averaged(self, all_res):
         """Combines metrics across all classes by averaging over the detection values"""
         res = {}
+        things_dict = dict(enumerate(all_res[1:9].flatten(), 1))
         for field in self.integer_array_fields:
-            res[field] = self._combine_sum(all_res, field)
+            res[field] = self._combine_sum(things_dict, field)
         for field in ['AssRe', 'AssPr', 'AssA']:
-            res[field] = self._combine_weighted_av(all_res, field, res, weight_field='HOTA_TP')
-        loca_weighted_sum = sum([all_res[k]['LocA'] * all_res[k]['HOTA_TP'] for k in all_res.keys()])
+            res[field] = self._combine_weighted_av(things_dict, field, res, weight_field='HOTA_TP')
+        loca_weighted_sum = sum([things_dict[k]['LocA'] * things_dict[k]['HOTA_TP'] for k in things_dict.keys()])
         res['LocA'] = np.maximum(1e-10, loca_weighted_sum) / np.maximum(1e-10, res['HOTA_TP'])
         res = self._compute_final_fields_HOTA(res)
         return res
 
     @staticmethod
-    def _compute_final_fields(res):
+    def _compute_final_fields_HOTA(res):
         """Calculate sub-metric ('field') values which only depend on other sub-metric values.
         This function is used both for both per-sequence calculation, and in combining values across sequences.
         """
